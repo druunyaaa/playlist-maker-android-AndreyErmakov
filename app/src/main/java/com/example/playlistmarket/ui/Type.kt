@@ -1,4 +1,4 @@
-package com.example.playlistyandex.ui.theme
+package com.example.playlistmarket.ui
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.playlistyandex.R
+import com.example.playlistmarket.R
 
 val YsDisplay = FontFamily(
         //Font(R.font.ys_display_regular, FontWeight.Normal),

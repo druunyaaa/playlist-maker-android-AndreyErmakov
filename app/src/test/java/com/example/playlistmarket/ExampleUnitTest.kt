@@ -1,4 +1,4 @@
-package com.example.playlistyandex
+package com.example.playlistmarket
 
 import org.junit.Test
 
