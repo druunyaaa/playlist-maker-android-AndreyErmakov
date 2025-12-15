@@ -51,22 +51,22 @@ fun PlaylistMakerScreen() {
         ) {
             MenuButton(
                 text = "Поиск",
-                icon = R.drawable.search_icon, // Убедись, что эта иконка есть в папке drawable
+                icon = R.drawable.search_icon,
             ) { navigateTo(context, SearchActivity::class.java) }
 
             MenuButton(
                 text = "Плейлисты",
-                icon = R.drawable.playlist // Убедись, что эта иконка есть в папке drawable
+                icon = R.drawable.playlist
             ) { navigateTo(context, null) }
 
             MenuButton(
                 text = "Избранное",
-                icon = R.drawable.favorite_icon // Убедись, что эта иконка есть в папке drawable
+                icon = R.drawable.favorite_icon
             ) { navigateTo(context, null) }
 
             MenuButton(
                 text = "Настройки",
-                icon = R.drawable.settings_icon // Убедись, что эта иконка есть в папке drawable
+                icon = R.drawable.settings_icon
             ) { navigateTo(context, SettingsActivity::class.java) }
         }
     }
@@ -123,7 +123,7 @@ fun MenuButton(
         )
 
         Icon(
-            painter = painterResource(id = R.drawable.arrow_icon), // Убедись, что есть arrow_icon
+            painter = painterResource(id = R.drawable.arrow_icon),
             contentDescription = null,
             tint = Color.Gray
         )

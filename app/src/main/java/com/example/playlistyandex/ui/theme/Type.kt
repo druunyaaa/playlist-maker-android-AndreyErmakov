@@ -9,11 +9,10 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistyandex.R
 
 val YsDisplay = FontFamily(
-        //Font(R.font.ys_display_regular, FontWeight.Normal), // Обычный
-        Font(R.font.ys_text_medium_regular, FontWeight.Medium),  // Cредний
+        //Font(R.font.ys_display_regular, FontWeight.Normal),
+        Font(R.font.ys_text_medium_regular, FontWeight.Medium),
 )
 
-// Set of Material typography styles to start with
 val Typography = Typography(
         bodyLarge = TextStyle(
                 fontFamily = YsDisplay,
