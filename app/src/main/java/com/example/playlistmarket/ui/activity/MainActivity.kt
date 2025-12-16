@@ -31,6 +31,7 @@ import com.example.playlistmarket.R
 import com.example.playlistmarket.ui.PlaylistYandexTheme
 import com.example.playlistmarket.ui.YsDisplay
 import com.example.playlistmarket.ui.search.SearchViewModel
+import com.example.playlistmarket.ui.library.LibraryScreen
 
 enum class PlaylistScreen {
     Main,
@@ -93,7 +94,7 @@ fun PlaylistHost(
             SettingsScreen(onBackClick = { navController.popBackStack() })
         }
         composable(PlaylistScreen.Library.name) {
-            // Заглушка
+            LibraryScreen()
         }
         composable(PlaylistScreen.Favorites.name) {
             // Заглушка
