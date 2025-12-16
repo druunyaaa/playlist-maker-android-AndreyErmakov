@@ -6,26 +6,21 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -35,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.playlistmarket.R
 import com.example.playlistmarket.ui.PlaylistYandexTheme
 import com.example.playlistmarket.ui.YsDisplay
+import com.example.playlistmarket.ui.search.SearchViewModel
 
 enum class PlaylistScreen {
     Main,
@@ -45,19 +41,27 @@ enum class PlaylistScreen {
 }
 
 class MainActivity : ComponentActivity() {
+
+    private val searchViewModel by viewModels<SearchViewModel> {
+        SearchViewModel.getViewModelFactory()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             PlaylistYandexTheme {
                 val navController = rememberNavController()
-                PlaylistHost(navController = navController)
+                PlaylistHost(navController = navController, searchViewModel = searchViewModel)
             }
         }
     }
 }
 
 @Composable
-fun PlaylistHost(navController: NavHostController) {
+fun PlaylistHost(
+    navController: NavHostController,
+    searchViewModel: SearchViewModel
+) {
     NavHost(
         navController = navController,
         startDestination = PlaylistScreen.Main.name
@@ -70,15 +74,29 @@ fun PlaylistHost(navController: NavHostController) {
                 onSettingsClick = { navController.navigate(PlaylistScreen.Settings.name) }
             )
         }
+
         composable(PlaylistScreen.Search.name) {
-            SearchScreen(onBackClick = { navController.popBackStack() })
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopBar(
+                    title = stringResource(id = R.string.search_screen_title),
+                    onBackClick = { navController.popBackStack() }
+                )
+
+                com.example.playlistmarket.ui.search.SearchScreen(
+                    modifier = Modifier.weight(1f),
+                    viewModel = searchViewModel
+                )
+            }
         }
+
         composable(PlaylistScreen.Settings.name) {
             SettingsScreen(onBackClick = { navController.popBackStack() })
         }
         composable(PlaylistScreen.Library.name) {
+            // Заглушка
         }
         composable(PlaylistScreen.Favorites.name) {
+            // Заглушка
         }
     }
 }
@@ -129,22 +147,6 @@ fun MainScreen(
     }
 }
 
-@Composable
-fun SearchScreen(onBackClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFFFFF))
-    ) {
-        TopBar(
-            title = stringResource(id = R.string.search_screen_title),
-            onBackClick = onBackClick
-        )
-        SearchBar()
-
-        Spacer(modifier = Modifier.weight(1f))
-    }
-}
 
 @Composable
 fun SettingsScreen(onBackClick: () -> Unit) {
@@ -235,57 +237,6 @@ fun TopBar(title: String, onBackClick: () -> Unit) {
 }
 
 @Composable
-fun SearchBar() {
-    var searchText by remember { mutableStateOf("") }
-    val searchBackgroundColor = Color(0xFFE6E8EB)
-
-    TextField(
-        value = searchText,
-        onValueChange = { newText -> searchText = newText },
-        placeholder = {
-            Text(
-                text = stringResource(id = R.string.search_placeholder),
-                color = Color(0xFF9F9F9F)
-            )
-        },
-        singleLine = true,
-        textStyle = TextStyle(fontSize = 16.sp, color = Color.Black),
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                tint = Color(0xFF9F9F9F)
-            )
-        },
-        trailingIcon = {
-            if (searchText.isNotEmpty()) {
-                IconButton(onClick = { searchText = "" }) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = stringResource(id = R.string.search_clear_button_description),
-                        tint = Color(0xFF9F9F9F)
-                    )
-                }
-            }
-        },
-        shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = searchBackgroundColor,
-            unfocusedContainerColor = searchBackgroundColor,
-            disabledContainerColor = searchBackgroundColor,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = Color.Black
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .height(56.dp)
-            .clip(RoundedCornerShape(8.dp))
-    )
-}
-
-@Composable
 fun MenuButton(
     text: String,
     icon: Int,
@@ -351,13 +302,6 @@ fun SettingsButton(
             modifier = Modifier.size(24.dp)
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Icon(
-            painter = painterResource(id = R.drawable.arrow_icon),
-            contentDescription = null,
-            tint = Color.Gray
-        )
     }
 }
 
@@ -386,13 +330,4 @@ fun openAgreement(context: Context) {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
     context.startActivity(agreementIntent)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PlaylistMakerPreview() {
-    PlaylistYandexTheme {
-        val navController = rememberNavController()
-        PlaylistHost(navController)
-    }
 }
