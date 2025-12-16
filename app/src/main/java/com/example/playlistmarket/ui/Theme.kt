@@ -1,4 +1,4 @@
-package com.example.playlistyandex.ui.theme
+package com.example.playlistmarket.ui
 
 import android.app.Activity
 import android.os.Build

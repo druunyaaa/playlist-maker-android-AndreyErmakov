@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.playlistyandex"
-    compileSdk = 34 // <-- ИСПРАВЛЕНО
+    namespace = "com.example.playlistmarket"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.playlistyandex"
+        applicationId = "com.example.playlistmarket"
         minSdk = 29
-        targetSdk = 34 // <-- ИСПРАВЛЕНО
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 

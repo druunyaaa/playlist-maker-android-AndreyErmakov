@@ -1,4 +1,4 @@
-package com.example.playlistyandex
+package com.example.playlistmarket
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

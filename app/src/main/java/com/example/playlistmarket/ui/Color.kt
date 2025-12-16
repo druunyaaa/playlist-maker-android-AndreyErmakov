@@ -1,4 +1,4 @@
-package com.example.playlistyandex.ui.theme
+package com.example.playlistmarket.ui
 
 import androidx.compose.ui.graphics.Color
 
