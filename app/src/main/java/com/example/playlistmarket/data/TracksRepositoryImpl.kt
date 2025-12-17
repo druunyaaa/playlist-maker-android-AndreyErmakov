@@ -1,29 +1,57 @@
 package com.example.playlistmarket.data
 
-import com.example.playlistmarket.data.dto.TracksSearchRequest
-import com.example.playlistmarket.data.dto.TracksSearchResponse
-import com.example.playlistmarket.domain.api.NetworkClient
+import com.example.playlistmarket.data.dto.TrackDto
+import com.example.playlistmarket.domain.api.Resource
 import com.example.playlistmarket.domain.api.TracksRepository
 import com.example.playlistmarket.domain.models.Track
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
-class TracksRepositoryImpl(private val networkClient: NetworkClient) : TracksRepository {
+class TracksRepositoryImpl(
+    private val database: DatabaseMock
+) : TracksRepository {
 
-    override suspend fun searchTracks(expression: String): List<Track> {
-        val response = networkClient.doRequest(TracksSearchRequest(expression))
+    private fun mapDtoToDomain(dto: TrackDto): Track {
+        return Track(
+            id = dto.id,
+            trackName = dto.trackName,
+            artistName = dto.artistName,
+            trackTimeMillis = dto.trackTimeMillis,
+            artworkUrl100 = dto.artworkUrl100,
+            favorite = dto.isFavorite
+        )
+    }
 
-        delay(1000L)
+    override fun searchTracks(expression: String): Flow<Resource<List<Track>>> = flow {
+        try {
+            val response = database.searchTracks(expression)
+            val data = response.map { mapDtoToDomain(it) }
 
-        return if (response.resultCode == 200) {
-            (response as TracksSearchResponse).results.map {
-                val seconds = it.trackTimeMillis / 1000
-                val minutes = seconds / 60
-                val trackTime = "%02d:%02d".format(minutes, seconds % 60)
-
-                Track(it.trackName, it.artistName, trackTime)
+            if (data.isEmpty()) {
+                emit(Resource.Success(emptyList()))
+            } else {
+                emit(Resource.Success(data))
             }
-        } else {
-            emptyList()
+        } catch (e: Exception) {
+            emit(Resource.Error("Ошибка сервера"))
         }
+    }
+
+    override fun getSearchQueryHistory(): List<String> {
+        return database.getSearchQueryHistory()
+    }
+
+    override fun addSearchQuery(query: String) {
+        database.addSearchQuery(query)
+    }
+
+    override fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
+        database.updateTrackFavoriteStatus(track.id, isFavorite)
+    }
+
+    override fun getFavoriteTracks(): Flow<List<Track>> = flow {
+        val dtos = database.getFavoriteTracksDto()
+        val tracks = dtos.map { mapDtoToDomain(it) }
+        emit(tracks)
     }
 }
