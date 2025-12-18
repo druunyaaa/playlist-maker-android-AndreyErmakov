@@ -2,13 +2,15 @@ package com.example.playlistmarket.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -16,6 +18,46 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmarket.R
 import com.example.playlistmarket.ui.YsDisplay
+
+// Добавлена утилита для безопасного клика (Debounce), чтобы не дублировать код
+fun Modifier.clickableDebounced(
+    enabled: Boolean = true,
+    interactionSource: MutableInteractionSource? = null,
+    indication: androidx.compose.foundation.Indication? = null,
+    debounceTime: Long = 500L,
+    onClick: () -> Unit
+): Modifier = composed {
+    var lastClickTime by remember { mutableLongStateOf(0L) }
+
+    this.clickable(
+        enabled = enabled,
+        interactionSource = interactionSource ?: remember { MutableInteractionSource() },
+        indication = indication ?: androidx.compose.foundation.LocalIndication.current
+    ) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > debounceTime) {
+            lastClickTime = currentTime
+            onClick()
+        }
+    }
+}
+
+class ClickDebouncer(private val debounceTime: Long = 500L) {
+    private var lastClickTime = 0L
+
+    fun click(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > debounceTime) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
+}
+
+@Composable
+fun rememberClickDebouncer(debounceTime: Long = 500L): ClickDebouncer {
+    return remember { ClickDebouncer(debounceTime) }
+}
 
 @Composable
 fun HeaderTitle() {
@@ -29,11 +71,12 @@ fun HeaderTitle() {
 
 @Composable
 fun TopBar(title: String, onBackClick: () -> Unit) {
+    val debouncer = rememberClickDebouncer()
     Row(
         modifier = Modifier.fillMaxWidth().height(56.dp).background(Color(0xFF3772E7)),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
+        IconButton(onClick = { debouncer.click { onBackClick() } }) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
         Text(title, color = Color.White, fontSize = 20.sp, fontFamily = YsDisplay, fontWeight = FontWeight.Medium)
@@ -43,7 +86,11 @@ fun TopBar(title: String, onBackClick: () -> Unit) {
 @Composable
 fun MenuButton(text: String, icon: Int, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(60.dp).clickable { onClick() }.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .clickableDebounced { onClick() } // Используем безопасный клик
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(painterResource(icon), null, tint = Color.Black, modifier = Modifier.size(24.dp))
@@ -56,7 +103,11 @@ fun MenuButton(text: String, icon: Int, onClick: () -> Unit) {
 @Composable
 fun SettingsButton(text: String, icon: Int, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(60.dp).clickable { onClick() }.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .clickableDebounced { onClick() }
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text, fontSize = 18.sp, color = Color.Black, modifier = Modifier.weight(1f))

@@ -1,7 +1,6 @@
 package com.example.playlistmarket.ui.player
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,10 +19,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.playlistmarket.R
 import com.example.playlistmarket.domain.models.Track
 import com.example.playlistmarket.ui.YsDisplay
-import com.example.playlistmarket.ui.library.PlaylistListItem // Важный импорт!
+import com.example.playlistmarket.ui.components.rememberClickDebouncer
+import com.example.playlistmarket.ui.library.PlaylistListItem
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -40,8 +41,14 @@ fun PlayerScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    val debouncer = rememberClickDebouncer()
+
     val playlists by viewModel.playlists.collectAsState(initial = emptyList())
-    var isFavorite by remember { mutableStateOf(track.favorite) }
+    val isFavorite by viewModel.isFavorite.collectAsState()
+
+    LaunchedEffect(track) {
+        viewModel.checkFavoriteStatus(track)
+    }
 
     val formattedTime = SimpleDateFormat("mm:ss", Locale.getDefault()).format(track.trackTimeMillis)
 
@@ -54,7 +61,7 @@ fun PlayerScreen(
                     .background(Color.White),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(onClick = { debouncer.click { onBackClick() } }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Black)
                 }
             }
@@ -67,9 +74,11 @@ fun PlayerScreen(
                 .background(Color.White)
                 .padding(24.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.music_icon),
+            AsyncImage(
+                model = track.artworkUrl100.replace("100x100bb.jpg", "512x512bb.jpg"),
                 contentDescription = "Cover",
+                placeholder = painterResource(id = R.drawable.music_icon),
+                error = painterResource(id = R.drawable.music_icon),
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
@@ -114,7 +123,6 @@ fun PlayerScreen(
 
                 IconButton(
                     onClick = {
-                        isFavorite = !isFavorite
                         viewModel.onFavoriteClicked(track)
                     },
                     modifier = Modifier
@@ -138,7 +146,7 @@ fun PlayerScreen(
                 Text(
                     text = "Длительность",
                     fontSize = 14.sp,
-                    color = Color.Black,
+                    color = Color(0xFFAEAFB4),
                     fontFamily = YsDisplay
                 )
                 Text(
@@ -173,6 +181,7 @@ fun PlayerScreen(
                     LazyColumn {
                         items(playlists.size) { index ->
                             val playlist = playlists[index]
+                            // Здесь клик обрабатывается внутри PlaylistListItem, который уже защищен
                             PlaylistListItem(playlist = playlist) {
                                 scope.launch {
                                     viewModel.addTrackToPlaylist(track, playlist)

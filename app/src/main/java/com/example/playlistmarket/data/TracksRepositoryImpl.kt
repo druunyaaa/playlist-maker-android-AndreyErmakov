@@ -1,13 +1,20 @@
 package com.example.playlistmarket.data
 
 import com.example.playlistmarket.data.dto.TrackDto
+import com.example.playlistmarket.data.dto.TracksSearchRequest
+import com.example.playlistmarket.data.dto.TracksSearchResponse
+import com.example.playlistmarket.domain.api.NetworkClient
 import com.example.playlistmarket.domain.api.Resource
 import com.example.playlistmarket.domain.api.TracksRepository
 import com.example.playlistmarket.domain.models.Track
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class TracksRepositoryImpl(
+    private val networkClient: NetworkClient,
     private val database: DatabaseMock
 ) : TracksRepository {
 
@@ -22,18 +29,35 @@ class TracksRepositoryImpl(
         )
     }
 
-    override fun searchTracks(expression: String): Flow<Resource<List<Track>>> = flow {
-        try {
-            val response = database.searchTracks(expression)
-            val data = response.map { mapDtoToDomain(it) }
+    // ИСПРАВЛЕНИЕ: Маппер из Domain в DTO для сохранения
+    private fun mapDomainToDto(track: Track): TrackDto {
+        return TrackDto(
+            id = track.id,
+            trackName = track.trackName,
+            artistName = track.artistName,
+            trackTimeMillis = track.trackTimeMillis,
+            artworkUrl100 = track.artworkUrl100,
+            isFavorite = track.favorite
+        )
+    }
 
-            if (data.isEmpty()) {
-                emit(Resource.Success(emptyList()))
-            } else {
-                emit(Resource.Success(data))
+    override fun searchTracks(expression: String): Flow<Resource<List<Track>>> = flow {
+        val response = networkClient.doRequest(TracksSearchRequest(expression))
+        when (response.resultCode) {
+            -1 -> {
+                emit(Resource.Error("Проверьте подключение к интернету"))
             }
-        } catch (e: Exception) {
-            emit(Resource.Error("Ошибка сервера"))
+            200 -> {
+                val results = (response as TracksSearchResponse).results.map { mapDtoToDomain(it) }
+                if (results.isEmpty()) {
+                    emit(Resource.Success(emptyList()))
+                } else {
+                    emit(Resource.Success(results))
+                }
+            }
+            else -> {
+                emit(Resource.Error("Ошибка сервера"))
+            }
         }
     }
 
@@ -46,12 +70,13 @@ class TracksRepositoryImpl(
     }
 
     override fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
-        database.updateTrackFavoriteStatus(track.id, isFavorite)
+        val trackDto = mapDomainToDto(track)
+        database.updateTrackFavoriteStatus(trackDto, isFavorite)
     }
 
-    override fun getFavoriteTracks(): Flow<List<Track>> = flow {
-        val dtos = database.getFavoriteTracksDto()
-        val tracks = dtos.map { mapDtoToDomain(it) }
-        emit(tracks)
+    override fun getFavoriteTracks(): Flow<List<Track>> {
+        return database.getFavoriteTracksFlow().map { list ->
+            list.map { mapDtoToDomain(it) }
+        }
     }
 }

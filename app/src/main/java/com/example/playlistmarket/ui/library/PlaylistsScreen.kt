@@ -2,7 +2,6 @@ package com.example.playlistmarket.ui.library
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistmarket.R
 import com.example.playlistmarket.domain.models.Playlist
 import com.example.playlistmarket.ui.YsDisplay
+import com.example.playlistmarket.ui.components.clickableDebounced
 
 @Composable
 fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
@@ -32,7 +32,7 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = { onClick() })
+            .clickableDebounced(onClick = onClick)
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -70,7 +70,7 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
 fun PlaylistsScreen(
     playlistsViewModel: PlaylistsViewModel,
     addNewPlaylist: () -> Unit,
-    navigateBack: () -> Unit,
+    // navigateBack убран, так как не используется
     navigateToPlaylist: (Long) -> Unit
 ) {
     val playlists by playlistsViewModel.playlists.collectAsState(initial = emptyList())

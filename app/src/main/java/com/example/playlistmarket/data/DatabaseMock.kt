@@ -4,11 +4,10 @@ import com.example.playlistmarket.data.dto.TrackDto
 import com.example.playlistmarket.domain.models.Playlist
 import com.example.playlistmarket.domain.models.Track
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 class DatabaseMock(
@@ -32,7 +31,10 @@ class DatabaseMock(
             TrackDto(9, "Танцевать", "Мельница", 222000, MOCK_ARTWORK),
             TrackDto(10, "Чёрный бумер", "Серега", 241000, MOCK_ARTWORK)
         )
+
+        private val _tracksFlow = MutableStateFlow<List<TrackDto>>(tracksDto.toList())
     }
+
     fun getSearchQueryHistory(): List<String> = searchQueryHistory.toList()
 
     fun addSearchQuery(query: String) {
@@ -44,21 +46,33 @@ class DatabaseMock(
         searchQueryHistory.add(0, query)
         if (searchQueryHistory.size > 10) searchQueryHistory.removeAt(searchQueryHistory.lastIndex)
     }
+
     fun searchTracks(expression: String): List<TrackDto> {
         if (expression.isEmpty()) return emptyList()
         return tracksDto.filter {
             it.trackName.contains(expression, true) || it.artistName.contains(expression, true)
         }
     }
-    fun updateTrackFavoriteStatus(trackId: Long, isFavorite: Boolean) {
-        val index = tracksDto.indexOfFirst { it.id == trackId }
+
+    // ИСПРАВЛЕНИЕ: Метод принимает TrackDto, чтобы исправить Type mismatch в Repository
+    fun updateTrackFavoriteStatus(trackDto: TrackDto, isFavorite: Boolean) {
+        val index = tracksDto.indexOfFirst { it.id == trackDto.id }
         if (index != -1) {
             tracksDto[index] = tracksDto[index].copy(isFavorite = isFavorite)
+        } else if (isFavorite) {
+            // Если трека нет в базе (пришел из поиска), добавляем его
+            tracksDto.add(trackDto.copy(isFavorite = true))
+        } else {
+            return
         }
+
+        _tracksFlow.value = tracksDto.toList()
+
+        // Обновляем треки внутри плейлистов
         _playlistsFlow.update { currentPlaylists ->
             currentPlaylists.map { playlist ->
                 val updatedTracks = playlist.tracks.map {
-                    if (it.id == trackId) it.copy(favorite = isFavorite) else it
+                    if (it.id == trackDto.id) it.copy(favorite = isFavorite) else it
                 }
                 playlist.copy(tracks = updatedTracks)
             }
@@ -69,13 +83,18 @@ class DatabaseMock(
         return tracksDto.filter { it.isFavorite }
     }
 
+    fun getFavoriteTracksFlow(): Flow<List<TrackDto>> {
+        return _tracksFlow.map { list -> list.filter { it.isFavorite } }
+    }
+
     fun getAllPlaylists(): Flow<List<Playlist>> {
         return _playlistsFlow.asStateFlow()
     }
 
-    fun getPlaylist(id: Long): Flow<Playlist?> = flow {
-        val playlist = _playlistsFlow.value.find { it.id == id }
-        emit(playlist)
+    fun getPlaylist(id: Long): Flow<Playlist?> {
+        return _playlistsFlow.map { playlists ->
+            playlists.find { it.id == id }
+        }
     }
 
     fun addNewPlaylist(name: String, description: String) {
@@ -91,6 +110,7 @@ class DatabaseMock(
         _playlistsFlow.update { currentPlaylists ->
             currentPlaylists.map { pl ->
                 if (pl.id == playlist.id) {
+                    // Логика верная, проблема с дублями была в TrackDto
                     if (pl.tracks.any { it.id == track.id }) pl else pl.copy(tracks = pl.tracks + track)
                 } else {
                     pl

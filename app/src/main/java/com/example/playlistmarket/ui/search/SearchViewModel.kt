@@ -1,9 +1,11 @@
 package com.example.playlistmarket.ui.search
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmarket.data.DatabaseMock
 import com.example.playlistmarket.data.TracksRepositoryImpl
+import com.example.playlistmarket.data.network.RetrofitNetworkClient
 import com.example.playlistmarket.domain.api.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,10 +15,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SearchViewModel : ViewModel() {
+class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
+    // Инициализация зависимостей
     private val database = DatabaseMock(viewModelScope)
-    private val repository = TracksRepositoryImpl(database)
+    private val networkClient = RetrofitNetworkClient(application)
+    private val repository = TracksRepositoryImpl(networkClient, database)
 
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
@@ -26,7 +30,6 @@ class SearchViewModel : ViewModel() {
     init {
         showHistory()
     }
-
 
     fun search(whatSearch: String) {
         searchJob?.cancel()
@@ -61,7 +64,6 @@ class SearchViewModel : ViewModel() {
             performSearch(whatSearch, saveToHistory = false)
         }
     }
-
 
     private suspend fun performSearch(whatSearch: String, saveToHistory: Boolean) {
         if (saveToHistory) {
@@ -98,5 +100,11 @@ class SearchViewModel : ViewModel() {
     fun clearSearchText() {
         searchJob?.cancel()
         showHistory()
+    }
+
+    // Фабрика для ViewModel, чтобы передать Application
+    companion object {
+        fun getViewModelFactory(application: Application): androidx.lifecycle.ViewModelProvider.Factory =
+            androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
 }

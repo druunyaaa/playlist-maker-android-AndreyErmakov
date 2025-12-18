@@ -1,12 +1,12 @@
 package com.example.playlistmarket.ui.library
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,10 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.playlistmarket.R
 import com.example.playlistmarket.ui.YsDisplay
+import com.example.playlistmarket.ui.components.rememberClickDebouncer
 
 @Composable
 fun NewPlaylistScreen(
@@ -26,6 +29,8 @@ fun NewPlaylistScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    val debouncer = rememberClickDebouncer()
 
     val blueColor = Color(0xFF3772E7)
     val grayColor = Color(0xFFE6E8EB)
@@ -45,7 +50,7 @@ fun NewPlaylistScreen(
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBackClick) {
+            IconButton(onClick = { debouncer.click { onBackClick() } }) {
                 Icon(Icons.Default.ArrowBack, "Back", tint = Color.Black)
             }
             Text("Новый плейлист", fontSize = 22.sp, fontFamily = YsDisplay, fontWeight = FontWeight.Medium, color = Color.Black, modifier = Modifier.padding(start = 12.dp))
@@ -58,11 +63,20 @@ fun NewPlaylistScreen(
                 .navigationBarsPadding()
         ) {
             Spacer(modifier = Modifier.height(24.dp))
+
             Box(
-                modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFE6E8EB)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, "Add", tint = Color.Gray, modifier = Modifier.size(80.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.default_playlist_icon),
+                    contentDescription = null,
+                    modifier = Modifier.wrapContentSize()
+                )
             }
             Spacer(modifier = Modifier.height(32.dp))
 
