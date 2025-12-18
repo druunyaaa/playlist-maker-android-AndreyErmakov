@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">PlaylistYandex</string>
+
+    <string name="menu_search">Поиск</string>
+    <string name="menu_library">Плейлисты</string>
+    <string name="menu_favorites">Избранное</string>
+    <string name="menu_settings">Настройки</string>
+
+    <string name="search_screen_title">Поиск</string>
+    <string name="search_placeholder">Поиск</string>
+    <string name="search_clear_button_description">Очистить</string>
+    <string name="back_button_description">Назад</string>
+
+    <string name="nothing_found">Ничего не нашлось</string>
+    <string name="connection_error">Проблемы со связью\nЗагрузка не удалась. Проверьте подключение к интернету</string>
+    <string name="refresh">Обновить</string>
+    <string name="add_playlist">Добавить плейлист</string>
+    <string name="search_icon">Search Icon</string>
+
+    <string name="settings_screen_title">Настройки</string>
+    <string name="settings_share">Поделиться приложением</string>
+    <string name="settings_support">Написать разработчикам</string>
+    <string name="settings_agreement">Пользовательское соглашение</string>
+
+    <string name="share_app">Поделиться</string>
+    <string name="share_app_link">https://practicum.yandex.ru/android-developer</string>
+    <string name="support_email">ermakovdrunya@gmail.com</string>
+    <string name="support_subject">Сообщение разработчикам</string>
+    <string name="support_message">Спасибо за приложение!</string>
+    <string name="agreement_link">https://yandex.ru/legal/practicum_offer/</string>
+</resources>
