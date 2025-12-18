@@ -2,8 +2,9 @@ package com.example.playlistmarket.ui.search
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.playlistmarket.data.DatabaseMock
+import com.example.playlistmarket.App
 import com.example.playlistmarket.data.TracksRepositoryImpl
 import com.example.playlistmarket.data.network.RetrofitNetworkClient
 import com.example.playlistmarket.domain.api.Resource
@@ -17,10 +18,13 @@ import kotlinx.coroutines.launch
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Инициализация зависимостей
-    private val database = DatabaseMock(viewModelScope)
+    // ПОЛУЧАЕМ ЗАВИСИМОСТИ ИЗ APP
+    private val database = (application as App).database
+    private val historyPreferences = (application as App).searchHistoryPreferences
     private val networkClient = RetrofitNetworkClient(application)
-    private val repository = TracksRepositoryImpl(networkClient, database)
+
+    // Передаем historyPreferences в репозиторий
+    private val repository = TracksRepositoryImpl(networkClient, database, historyPreferences)
 
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
@@ -45,7 +49,9 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun saveSearchQuery(query: String) {
         if (query.isNotEmpty()) {
-            repository.addSearchQuery(query)
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.addSearchQuery(query)
+            }
         }
     }
 
@@ -89,11 +95,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun showHistory() {
         searchJob?.cancel()
-        val queries = repository.getSearchQueryHistory()
-        if (queries.isNotEmpty()) {
-            _searchScreenState.update { SearchState.History(queries) }
-        } else {
-            _searchScreenState.update { SearchState.Initial }
+        viewModelScope.launch {
+            val queries = repository.getSearchQueryHistory()
+            if (queries.isNotEmpty()) {
+                _searchScreenState.update { SearchState.History(queries) }
+            } else {
+                _searchScreenState.update { SearchState.Initial }
+            }
         }
     }
 
@@ -102,9 +110,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         showHistory()
     }
 
-    // Фабрика для ViewModel, чтобы передать Application
     companion object {
-        fun getViewModelFactory(application: Application): androidx.lifecycle.ViewModelProvider.Factory =
+        fun getViewModelFactory(application: Application): ViewModelProvider.Factory =
             androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
 }

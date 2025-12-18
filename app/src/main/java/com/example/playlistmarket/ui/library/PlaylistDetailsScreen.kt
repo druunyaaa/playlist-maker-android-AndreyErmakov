@@ -25,6 +25,8 @@ import com.example.playlistmarket.domain.models.Playlist
 import com.example.playlistmarket.domain.models.Track
 import com.example.playlistmarket.ui.YsDisplay
 import com.example.playlistmarket.ui.search.TrackListItem
+import com.example.playlistmarket.ui.components.MenuActionItem
+import com.example.playlistmarket.ui.components.getPluralString
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -187,32 +189,4 @@ fun PlaylistDetailsScreen(
             }
         }
     }
-}
-
-@Composable
-fun MenuActionItem(text: String, onClick: () -> Unit) {
-    Text(
-        text = text,
-        fontSize = 16.sp,
-        fontFamily = YsDisplay,
-        color = Color.Black,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 16.dp, horizontal = 16.dp)
-    )
-}
-
-fun getPluralString(count: Int, one: String, two: String, five: String): String {
-    val n = count % 100
-    val n1 = n % 10
-
-    val word = when {
-        n in 11..19 -> five
-        n1 == 1 -> one
-        n1 in 2..4 -> two
-        else -> five
-    }
-
-    return "$count $word"
 }

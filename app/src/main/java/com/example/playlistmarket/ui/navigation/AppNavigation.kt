@@ -119,9 +119,10 @@ fun PlaylistHost(
             arguments = listOf(navArgument("playlistId") { type = NavType.LongType })
         ) { backStackEntry ->
             val playlistId = backStackEntry.arguments?.getLong("playlistId") ?: 0L
-
+            val context = LocalContext.current
+            val application = context.applicationContext as Application
             val viewModel: PlaylistViewModel = viewModel(
-                factory = PlaylistViewModel.getViewModelFactory(playlistId)
+                factory = PlaylistViewModel.getViewModelFactory(playlistId, application)
             )
 
             PlaylistScreen(

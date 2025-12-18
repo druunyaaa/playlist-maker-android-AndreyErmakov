@@ -1,8 +1,11 @@
 package com.example.playlistmarket.data
 
+import com.example.playlistmarket.data.db.AppDatabase
+import com.example.playlistmarket.data.db.entity.TrackEntity
 import com.example.playlistmarket.data.dto.TrackDto
 import com.example.playlistmarket.data.dto.TracksSearchRequest
 import com.example.playlistmarket.data.dto.TracksSearchResponse
+import com.example.playlistmarket.data.preferences.SearchHistoryPreferences
 import com.example.playlistmarket.domain.api.NetworkClient
 import com.example.playlistmarket.domain.api.Resource
 import com.example.playlistmarket.domain.api.TracksRepository
@@ -10,34 +13,43 @@ import com.example.playlistmarket.domain.models.Track
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class TracksRepositoryImpl(
     private val networkClient: NetworkClient,
-    private val database: DatabaseMock
+    private val database: AppDatabase,
+    private val historyPreferences: SearchHistoryPreferences
 ) : TracksRepository {
 
-    private fun mapDtoToDomain(dto: TrackDto): Track {
+    private fun mapDtoToDomain(dto: TrackDto, isFavorite: Boolean): Track {
         return Track(
             id = dto.id,
             trackName = dto.trackName,
             artistName = dto.artistName,
             trackTimeMillis = dto.trackTimeMillis,
             artworkUrl100 = dto.artworkUrl100,
-            favorite = dto.isFavorite
+            favorite = isFavorite
         )
     }
 
-    // ИСПРАВЛЕНИЕ: Маппер из Domain в DTO для сохранения
-    private fun mapDomainToDto(track: Track): TrackDto {
-        return TrackDto(
+    private fun mapDomainToEntity(track: Track): TrackEntity {
+        return TrackEntity(
             id = track.id,
             trackName = track.trackName,
             artistName = track.artistName,
             trackTimeMillis = track.trackTimeMillis,
             artworkUrl100 = track.artworkUrl100,
-            isFavorite = track.favorite
+            addedTimestamp = System.currentTimeMillis()
+        )
+    }
+
+    private fun mapEntityToDomain(entity: TrackEntity): Track {
+        return Track(
+            id = entity.id,
+            trackName = entity.trackName,
+            artistName = entity.artistName,
+            trackTimeMillis = entity.trackTimeMillis,
+            artworkUrl100 = entity.artworkUrl100,
+            favorite = true
         )
     }
 
@@ -48,7 +60,13 @@ class TracksRepositoryImpl(
                 emit(Resource.Error("Проверьте подключение к интернету"))
             }
             200 -> {
-                val results = (response as TracksSearchResponse).results.map { mapDtoToDomain(it) }
+                // Получаем список ID избранных треков, чтобы проставить лайки в поиске
+                val favoriteIds = database.trackDao().getFavoriteTrackIds()
+
+                val results = (response as TracksSearchResponse).results.map { dto ->
+                    mapDtoToDomain(dto, isFavorite = favoriteIds.contains(dto.id))
+                }
+
                 if (results.isEmpty()) {
                     emit(Resource.Success(emptyList()))
                 } else {
@@ -61,22 +79,26 @@ class TracksRepositoryImpl(
         }
     }
 
-    override fun getSearchQueryHistory(): List<String> {
-        return database.getSearchQueryHistory()
+    // Методы работы с историей теперь асинхронны, так как DataStore работает через coroutines
+    override suspend fun getSearchQueryHistory(): List<String> {
+        return historyPreferences.getEntries()
     }
 
-    override fun addSearchQuery(query: String) {
-        database.addSearchQuery(query)
+    override suspend fun addSearchQuery(query: String) {
+        historyPreferences.addEntry(query)
     }
 
-    override fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
-        val trackDto = mapDomainToDto(track)
-        database.updateTrackFavoriteStatus(trackDto, isFavorite)
+    override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
+        if (isFavorite) {
+            database.trackDao().insertTrack(mapDomainToEntity(track))
+        } else {
+            database.trackDao().deleteTrack(mapDomainToEntity(track))
+        }
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> {
-        return database.getFavoriteTracksFlow().map { list ->
-            list.map { mapDtoToDomain(it) }
+        return database.trackDao().getFavoriteTracks().map { list ->
+            list.map { mapEntityToDomain(it) }
         }
     }
 }

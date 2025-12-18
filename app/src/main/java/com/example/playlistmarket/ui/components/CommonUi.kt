@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistmarket.R
 import com.example.playlistmarket.ui.YsDisplay
 
-// Добавлена утилита для безопасного клика (Debounce), чтобы не дублировать код
+// Добавлена утилита для безопасного клика (Debounce)
 fun Modifier.clickableDebounced(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
@@ -89,7 +89,7 @@ fun MenuButton(text: String, icon: Int, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
-            .clickableDebounced { onClick() } // Используем безопасный клик
+            .clickableDebounced { onClick() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -113,4 +113,34 @@ fun SettingsButton(text: String, icon: Int, onClick: () -> Unit) {
         Text(text, fontSize = 18.sp, color = Color.Black, modifier = Modifier.weight(1f))
         Icon(painterResource(icon), null, tint = Color.Black, modifier = Modifier.size(24.dp))
     }
+}
+
+// --- Перенесенные функции ---
+
+@Composable
+fun MenuActionItem(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        fontFamily = YsDisplay,
+        color = Color.Black,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 16.dp, horizontal = 16.dp)
+    )
+}
+
+fun getPluralString(count: Int, one: String, two: String, five: String): String {
+    val n = count % 100
+    val n1 = n % 10
+
+    val word = when {
+        n in 11..19 -> five
+        n1 == 1 -> one
+        n1 in 2..4 -> two
+        else -> five
+    }
+
+    return "$count $word"
 }

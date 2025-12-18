@@ -6,9 +6,11 @@ import kotlinx.coroutines.flow.Flow
 interface TracksRepository {
     fun searchTracks(expression: String): Flow<Resource<List<Track>>>
 
-    fun getSearchQueryHistory(): List<String>
-    fun addSearchQuery(query: String)
+    suspend fun getSearchQueryHistory(): List<String>
 
-    fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean)
+    suspend fun addSearchQuery(query: String)
+
+    suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean)
+
     fun getFavoriteTracks(): Flow<List<Track>>
 }
