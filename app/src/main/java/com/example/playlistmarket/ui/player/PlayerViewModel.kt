@@ -5,9 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.playlistmarket.data.DatabaseMock
+import com.example.playlistmarket.App
 import com.example.playlistmarket.data.PlaylistsRepositoryImpl
 import com.example.playlistmarket.data.TracksRepositoryImpl
+import com.example.playlistmarket.data.db.converters.DbConverter
 import com.example.playlistmarket.data.network.RetrofitNetworkClient
 import com.example.playlistmarket.domain.api.PlaylistsRepository
 import com.example.playlistmarket.domain.api.TracksRepository
@@ -20,18 +21,21 @@ import kotlinx.coroutines.launch
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = DatabaseMock(viewModelScope)
+    // Инициализация реальных зависимостей
+    private val app = application as App
+    private val database = app.database
+    private val historyPreferences = app.searchHistoryPreferences
     private val networkClient = RetrofitNetworkClient(application)
-    private val playlistsRepository: PlaylistsRepository = PlaylistsRepositoryImpl(database)
-    private val tracksRepository: TracksRepository = TracksRepositoryImpl(networkClient, database)
+    private val converter = DbConverter()
+
+    private val playlistsRepository: PlaylistsRepository = PlaylistsRepositoryImpl(database, converter)
+    private val tracksRepository: TracksRepository = TracksRepositoryImpl(networkClient, database, historyPreferences)
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite = _isFavorite.asStateFlow()
 
-    // Восстанавливаем получение плейлистов
     val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
 
-    // Метод для проверки реального статуса лайка в БД (решает проблему 1)
     fun checkFavoriteStatus(track: Track) {
         viewModelScope.launch {
             tracksRepository.getFavoriteTracks().collect { favorites ->
@@ -50,7 +54,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // Восстанавливаем добавление трека в плейлист
     fun addTrackToPlaylist(track: Track, playlist: Playlist) {
         viewModelScope.launch {
             playlistsRepository.addTrackToPlaylist(track, playlist)

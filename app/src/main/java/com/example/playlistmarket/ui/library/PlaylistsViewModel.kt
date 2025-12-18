@@ -5,9 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.playlistmarket.data.DatabaseMock
+import com.example.playlistmarket.App
 import com.example.playlistmarket.data.PlaylistsRepositoryImpl
 import com.example.playlistmarket.data.TracksRepositoryImpl
+import com.example.playlistmarket.data.db.converters.DbConverter
 import com.example.playlistmarket.data.network.RetrofitNetworkClient
 import com.example.playlistmarket.domain.api.PlaylistsRepository
 import com.example.playlistmarket.domain.api.TracksRepository
@@ -18,12 +19,14 @@ import kotlinx.coroutines.launch
 
 class PlaylistsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = DatabaseMock(viewModelScope)
+    private val app = application as App
+    private val database = app.database
+    private val historyPreferences = app.searchHistoryPreferences
     private val networkClient = RetrofitNetworkClient(application)
+    private val converter = DbConverter()
 
-    private val playlistsRepository: PlaylistsRepository = PlaylistsRepositoryImpl(database)
-    // TracksRepositoryImpl теперь требует networkClient
-    private val tracksRepository: TracksRepository = TracksRepositoryImpl(networkClient, database)
+    private val playlistsRepository: PlaylistsRepository = PlaylistsRepositoryImpl(database, converter)
+    private val tracksRepository: TracksRepository = TracksRepositoryImpl(networkClient, database, historyPreferences)
 
     val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
     val favoriteTracks: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
