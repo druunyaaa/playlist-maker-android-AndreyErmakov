@@ -29,6 +29,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         application
     )
 
+    var lastQuery = ""
+
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
 
@@ -74,6 +76,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+
+
     private suspend fun performSearch(whatSearch: String, saveToHistory: Boolean) {
         if (saveToHistory) {
             repository.addSearchQuery(whatSearch)
@@ -110,6 +114,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun clearSearchText() {
         searchJob?.cancel()
+        lastQuery = ""
         showHistory()
     }
 

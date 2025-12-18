@@ -38,7 +38,7 @@ fun SearchScreen(
     onTrackClick: (Track) -> Unit
 ) {
     val screenState by viewModel.searchScreenState.collectAsState()
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(viewModel.lastQuery) }
     val focusManager = LocalFocusManager.current
     var isFocused by remember { mutableStateOf(false) }
 
@@ -67,6 +67,7 @@ fun SearchScreen(
                     value = text,
                     onValueChange = {
                         text = it
+                        viewModel.lastQuery = it
                         if (it.isEmpty()) {
                             viewModel.showHistory()
                         } else {
