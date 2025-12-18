@@ -9,5 +9,6 @@ data class PlaylistEntity(
     val id: Long = 0,
     val name: String,
     val description: String,
-    val tracksJson: String // Храним список треков в виде JSON-строки
+    val coverImageUri: String? = null,
+    val tracksJson: String
 )

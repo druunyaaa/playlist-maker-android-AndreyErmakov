@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmarket.App
-import com.example.playlistmarket.data.TracksRepositoryImpl
+import com.example.playlistmarket.data.repository.TracksRepositoryImpl
 import com.example.playlistmarket.data.network.RetrofitNetworkClient
 import com.example.playlistmarket.domain.api.Resource
 import kotlinx.coroutines.Dispatchers
@@ -18,13 +18,18 @@ import kotlinx.coroutines.launch
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
 
-    // ПОЛУЧАЕМ ЗАВИСИМОСТИ ИЗ APP
     private val database = (application as App).database
     private val historyPreferences = (application as App).searchHistoryPreferences
     private val networkClient = RetrofitNetworkClient(application)
 
-    // Передаем historyPreferences в репозиторий
-    private val repository = TracksRepositoryImpl(networkClient, database, historyPreferences)
+    private val repository = TracksRepositoryImpl(
+        networkClient,
+        database,
+        historyPreferences,
+        application
+    )
+
+    var lastQuery = ""
 
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
@@ -71,6 +76,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+
+
     private suspend fun performSearch(whatSearch: String, saveToHistory: Boolean) {
         if (saveToHistory) {
             repository.addSearchQuery(whatSearch)
@@ -107,6 +114,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun clearSearchText() {
         searchJob?.cancel()
+        lastQuery = ""
         showHistory()
     }
 

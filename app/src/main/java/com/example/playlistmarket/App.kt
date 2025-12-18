@@ -9,7 +9,6 @@ import androidx.room.Room
 import com.example.playlistmarket.data.db.AppDatabase
 import com.example.playlistmarket.data.preferences.SearchHistoryPreferences
 
-// Создаем расширение для получения DataStore (Singleton)
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class App : Application() {
@@ -20,16 +19,14 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Инициализация базы данных
         database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
             "database.db"
         )
-            .allowMainThreadQueries() // В идеале убрать, но для простоты миграции пока оставим (лучше использовать корутины везде)
+            .allowMainThreadQueries()
             .build()
 
-        // Инициализация истории поиска
         searchHistoryPreferences = SearchHistoryPreferences(dataStore)
     }
 }

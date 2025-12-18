@@ -22,7 +22,7 @@ fun MainScreen(
         HeaderTitle()
         Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
             MenuButton(stringResource(R.string.menu_search), R.drawable.search_icon, onSearchClick)
-            MenuButton("Плейлисты", R.drawable.playlist, onLibraryClick)
+            MenuButton(stringResource(R.string.menu_library), R.drawable.playlist, onLibraryClick)
             MenuButton(stringResource(R.string.menu_favorites), R.drawable.favorite_icon, onFavoritesClick)
             MenuButton(stringResource(R.string.menu_settings), R.drawable.settings_icon, onSettingsClick)
         }

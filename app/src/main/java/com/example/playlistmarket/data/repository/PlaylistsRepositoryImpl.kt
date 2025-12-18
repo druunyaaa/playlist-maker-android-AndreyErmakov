@@ -1,4 +1,4 @@
-package com.example.playlistmarket.data
+package com.example.playlistmarket.data.repository
 
 import com.example.playlistmarket.data.db.AppDatabase
 import com.example.playlistmarket.data.db.converters.DbConverter
@@ -21,28 +21,28 @@ class PlaylistsRepositoryImpl(
                     id = entity.id,
                     name = entity.name,
                     description = entity.description,
+                    coverImageUri = entity.coverImageUri,
                     tracks = converter.toTracksList(entity.tracksJson)
                 )
             }
         }
     }
 
-    override suspend fun createPlaylist(name: String, description: String) {
+    override suspend fun createPlaylist(name: String, description: String, coverImageUri: String?) {
         val playlistEntity = PlaylistEntity(
             name = name,
             description = description,
+            coverImageUri = coverImageUri,
             tracksJson = converter.fromTracksList(emptyList())
         )
         database.playlistDao().insertPlaylist(playlistEntity)
     }
 
     override suspend fun addTrackToPlaylist(track: Track, playlist: Playlist) {
-        // Получаем актуальную версию плейлиста из БД, чтобы избежать конфликтов
         val currentPlaylistEntity = database.playlistDao().getPlaylistByIdSuspend(playlist.id)
         if (currentPlaylistEntity != null) {
             val currentTracks = converter.toTracksList(currentPlaylistEntity.tracksJson).toMutableList()
 
-            // Проверяем на дубликаты треков внутри плейлиста
             if (currentTracks.none { it.id == track.id }) {
                 currentTracks.add(track)
                 val updatedEntity = currentPlaylistEntity.copy(
@@ -60,6 +60,7 @@ class PlaylistsRepositoryImpl(
                     id = it.id,
                     name = it.name,
                     description = it.description,
+                    coverImageUri = it.coverImageUri,
                     tracks = converter.toTracksList(it.tracksJson)
                 )
             }

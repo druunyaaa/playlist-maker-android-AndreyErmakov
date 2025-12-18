@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,7 +25,7 @@ import com.example.playlistmarket.R
 import com.example.playlistmarket.domain.models.Track
 import com.example.playlistmarket.ui.YsDisplay
 import com.example.playlistmarket.ui.components.rememberClickDebouncer
-import com.example.playlistmarket.ui.library.PlaylistListItem
+import com.example.playlistmarket.ui.playlists.PlaylistListItem
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -62,7 +63,7 @@ fun PlayerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { debouncer.click { onBackClick() } }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.Black)
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back_button_description), tint = Color.Black)
                 }
             }
         }
@@ -76,7 +77,7 @@ fun PlayerScreen(
         ) {
             AsyncImage(
                 model = track.artworkUrl100.replace("100x100bb.jpg", "512x512bb.jpg"),
-                contentDescription = "Cover",
+                contentDescription = stringResource(R.string.player_cover_desc),
                 placeholder = painterResource(id = R.drawable.music_icon),
                 error = painterResource(id = R.drawable.music_icon),
                 modifier = Modifier
@@ -116,7 +117,7 @@ fun PlayerScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.playlist_button),
-                        contentDescription = "Add to playlist",
+                        contentDescription = stringResource(R.string.player_add_to_playlist_desc),
                         tint = Color.Unspecified
                     )
                 }
@@ -131,7 +132,7 @@ fun PlayerScreen(
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.fav_button),
-                        contentDescription = "Like",
+                        contentDescription = stringResource(R.string.player_like_desc),
                         tint = if (isFavorite) Color(0xFFE26D6D) else Color.Unspecified
                     )
                 }
@@ -144,7 +145,7 @@ fun PlayerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Длительность",
+                    text = stringResource(R.string.track_duration),
                     fontSize = 14.sp,
                     color = Color(0xFFAEAFB4),
                     fontFamily = YsDisplay
@@ -170,7 +171,7 @@ fun PlayerScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "Добавить в плейлист",
+                        text = stringResource(R.string.add_to_playlist_sheet_title),
                         fontSize = 19.sp,
                         fontFamily = YsDisplay,
                         fontWeight = FontWeight.Medium,
@@ -181,15 +182,19 @@ fun PlayerScreen(
                     LazyColumn {
                         items(playlists.size) { index ->
                             val playlist = playlists[index]
-                            // Здесь клик обрабатывается внутри PlaylistListItem, который уже защищен
-                            PlaylistListItem(playlist = playlist) {
-                                scope.launch {
-                                    viewModel.addTrackToPlaylist(track, playlist)
-                                    Toast.makeText(context, "Добавлено в плейлист ${playlist.name}", Toast.LENGTH_SHORT).show()
-                                    sheetState.hide()
-                                    showBottomSheet = false
+
+                            PlaylistListItem(
+                                playlist = playlist,
+                                onClick = {
+                                    scope.launch {
+                                        viewModel.addTrackToPlaylist(track, playlist)
+                                        val message = context.getString(R.string.added_to_playlist_message, playlist.name)
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                        sheetState.hide()
+                                        showBottomSheet = false
+                                    }
                                 }
-                            }
+                            )
                         }
                     }
                 }
