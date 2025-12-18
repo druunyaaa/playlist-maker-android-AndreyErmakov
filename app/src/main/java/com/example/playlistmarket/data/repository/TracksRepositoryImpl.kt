@@ -1,5 +1,7 @@
-package com.example.playlistmarket.data
+package com.example.playlistmarket.data.repository
 
+import android.content.Context
+import com.example.playlistmarket.R
 import com.example.playlistmarket.data.db.AppDatabase
 import com.example.playlistmarket.data.db.entity.TrackEntity
 import com.example.playlistmarket.data.dto.TrackDto
@@ -17,7 +19,8 @@ import kotlinx.coroutines.flow.map
 class TracksRepositoryImpl(
     private val networkClient: NetworkClient,
     private val database: AppDatabase,
-    private val historyPreferences: SearchHistoryPreferences
+    private val historyPreferences: SearchHistoryPreferences,
+    private val context: Context
 ) : TracksRepository {
 
     private fun mapDtoToDomain(dto: TrackDto, isFavorite: Boolean): Track {
@@ -57,10 +60,9 @@ class TracksRepositoryImpl(
         val response = networkClient.doRequest(TracksSearchRequest(expression))
         when (response.resultCode) {
             -1 -> {
-                emit(Resource.Error("Проверьте подключение к интернету"))
+                emit(Resource.Error(context.getString(R.string.connection_error)))
             }
             200 -> {
-                // Получаем список ID избранных треков, чтобы проставить лайки в поиске
                 val favoriteIds = database.trackDao().getFavoriteTrackIds()
 
                 val results = (response as TracksSearchResponse).results.map { dto ->
@@ -74,12 +76,11 @@ class TracksRepositoryImpl(
                 }
             }
             else -> {
-                emit(Resource.Error("Ошибка сервера"))
+                emit(Resource.Error(context.getString(R.string.server_error)))
             }
         }
     }
 
-    // Методы работы с историей теперь асинхронны, так как DataStore работает через coroutines
     override suspend fun getSearchQueryHistory(): List<String> {
         return historyPreferences.getEntries()
     }

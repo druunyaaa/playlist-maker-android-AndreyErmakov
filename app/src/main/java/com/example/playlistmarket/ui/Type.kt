@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistmarket.R
 
 val YsDisplay = FontFamily(
-        //Font(R.font.ys_display_regular, FontWeight.Normal),
         Font(R.font.ys_text_medium_regular, FontWeight.Medium),
 )
 

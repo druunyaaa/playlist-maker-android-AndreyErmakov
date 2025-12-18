@@ -11,5 +11,5 @@ data class TrackEntity(
     val artistName: String,
     val trackTimeMillis: Long,
     val artworkUrl100: String,
-    val addedTimestamp: Long = System.currentTimeMillis() // Для сортировки по дате добавления
+    val addedTimestamp: Long = System.currentTimeMillis()
 )

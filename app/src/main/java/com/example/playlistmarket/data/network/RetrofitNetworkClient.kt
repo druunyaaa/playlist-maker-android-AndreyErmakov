@@ -34,7 +34,7 @@ class RetrofitNetworkClient(private val context: Context) : NetworkClient {
             val body = resp.body() ?: BaseResponse()
             body.apply { resultCode = resp.code() }
         } catch (e: Exception) {
-            e.printStackTrace() // Это выведет реальную ошибку (Timeout, DNS, и т.д.) в консоль
+            e.printStackTrace()
             BaseResponse().apply { resultCode = 500 }
         }
     }

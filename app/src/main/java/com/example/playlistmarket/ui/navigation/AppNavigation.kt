@@ -19,7 +19,8 @@ import androidx.navigation.navArgument
 import com.example.playlistmarket.R
 import com.example.playlistmarket.domain.models.Track
 import com.example.playlistmarket.ui.components.TopBar
-import com.example.playlistmarket.ui.library.*
+import com.example.playlistmarket.ui.favorites.FavoritesScreen
+import com.example.playlistmarket.ui.playlists.*
 import com.example.playlistmarket.ui.main.MainScreen
 import com.example.playlistmarket.ui.player.PlayerScreen
 import com.example.playlistmarket.ui.player.PlayerViewModel
@@ -77,11 +78,10 @@ fun PlaylistHost(
         }
 
         composable(PlaylistScreen.Favorites.name) {
-            val viewModel: PlaylistsViewModel = viewModel(factory = PlaylistsViewModel.getViewModelFactory(context))
+
             Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
                 TopBar(stringResource(R.string.menu_favorites)) { navController.popBackStack() }
                 FavoritesScreen(
-                    playlistsViewModel = viewModel,
                     onTrackClick = { track ->
                         val json = Uri.encode(Gson().toJson(track))
                         navigateSafe("${PlaylistScreen.Player.name}/$json")
@@ -97,11 +97,10 @@ fun PlaylistHost(
         composable(PlaylistScreen.Library.name) {
             val viewModel: PlaylistsViewModel = viewModel(factory = PlaylistsViewModel.getViewModelFactory(context))
             Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-                TopBar("Плейлисты") { navController.popBackStack() }
+                TopBar(stringResource(R.string.menu_library)) { navController.popBackStack() }
                 PlaylistsScreen(
                     playlistsViewModel = viewModel,
                     addNewPlaylist = { navigateSafe(PlaylistScreen.NewPlaylist.name) },
-                    // Аргумент navigateBack удален
                     navigateToPlaylist = { playlistId ->
                         navigateSafe("${PlaylistScreen.PlaylistDetails.name}/$playlistId")
                     }
@@ -119,10 +118,9 @@ fun PlaylistHost(
             arguments = listOf(navArgument("playlistId") { type = NavType.LongType })
         ) { backStackEntry ->
             val playlistId = backStackEntry.arguments?.getLong("playlistId") ?: 0L
-            val context = LocalContext.current
-            val application = context.applicationContext as Application
+
             val viewModel: PlaylistViewModel = viewModel(
-                factory = PlaylistViewModel.getViewModelFactory(playlistId, application)
+                factory = PlaylistViewModel.getViewModelFactory(playlistId, context)
             )
 
             PlaylistScreen(

@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -84,12 +83,12 @@ fun SearchScreen(
                     placeholder = {
                         Text(stringResource(R.string.search_placeholder), color = Color.Gray, fontFamily = YsDisplay, fontSize = 16.sp)
                     },
-                    leadingIcon = { Icon(Icons.Default.Search, "Search", tint = Color.Gray) },
+                    leadingIcon = { Icon(Icons.Default.Search, stringResource(R.string.search_icon_desc), tint = Color.Gray) },
                     trailingIcon = if (text.isNotEmpty()) {
                         {
                             Icon(
                                 Icons.Default.Clear,
-                                "Clear",
+                                stringResource(R.string.search_clear_button_description),
                                 tint = Color.Gray,
                                 modifier = Modifier.clickable {
                                     text = ""

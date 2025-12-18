@@ -25,10 +25,9 @@ class SearchHistoryPreferences(
                 mutableListOf()
             }
 
-            history.removeAll { it.equals(word, ignoreCase = true) } // Удаляем дубликат
-            history.add(0, word) // Добавляем в начало
+            history.removeAll { it.equals(word, ignoreCase = true) } 
+            history.add(0, word)
 
-            // Оставляем только 10 последних
             while (history.size > MAX_ENTRIES) {
                 history.removeAt(history.lastIndex)
             }

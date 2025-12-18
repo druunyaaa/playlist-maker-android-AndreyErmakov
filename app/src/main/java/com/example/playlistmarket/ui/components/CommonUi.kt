@@ -13,13 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmarket.R
 import com.example.playlistmarket.ui.YsDisplay
 
-// Добавлена утилита для безопасного клика (Debounce)
 fun Modifier.clickableDebounced(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
@@ -65,7 +65,7 @@ fun HeaderTitle() {
         modifier = Modifier.fillMaxWidth().height(64.dp).background(Color(0xFF3772E7)),
         contentAlignment = Alignment.CenterStart
     ) {
-        Text("Playlist maker", color = Color.White, fontSize = 20.sp, modifier = Modifier.padding(start = 16.dp), fontFamily = YsDisplay, fontWeight = FontWeight.Medium)
+        Text(stringResource(R.string.header_title), color = Color.White, fontSize = 20.sp, modifier = Modifier.padding(start = 16.dp), fontFamily = YsDisplay, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -77,7 +77,7 @@ fun TopBar(title: String, onBackClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { debouncer.click { onBackClick() } }) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back_button_description), tint = Color.White)
         }
         Text(title, color = Color.White, fontSize = 20.sp, fontFamily = YsDisplay, fontWeight = FontWeight.Medium)
     }
@@ -113,34 +113,4 @@ fun SettingsButton(text: String, icon: Int, onClick: () -> Unit) {
         Text(text, fontSize = 18.sp, color = Color.Black, modifier = Modifier.weight(1f))
         Icon(painterResource(icon), null, tint = Color.Black, modifier = Modifier.size(24.dp))
     }
-}
-
-// --- Перенесенные функции ---
-
-@Composable
-fun MenuActionItem(text: String, onClick: () -> Unit) {
-    Text(
-        text = text,
-        fontSize = 16.sp,
-        fontFamily = YsDisplay,
-        color = Color.Black,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 16.dp, horizontal = 16.dp)
-    )
-}
-
-fun getPluralString(count: Int, one: String, two: String, five: String): String {
-    val n = count % 100
-    val n1 = n % 10
-
-    val word = when {
-        n in 11..19 -> five
-        n1 == 1 -> one
-        n1 in 2..4 -> two
-        else -> five
-    }
-
-    return "$count $word"
 }

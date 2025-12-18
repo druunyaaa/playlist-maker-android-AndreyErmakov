@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmarket.App
-import com.example.playlistmarket.data.PlaylistsRepositoryImpl
-import com.example.playlistmarket.data.TracksRepositoryImpl
+import com.example.playlistmarket.data.repository.PlaylistsRepositoryImpl
+import com.example.playlistmarket.data.repository.TracksRepositoryImpl
 import com.example.playlistmarket.data.db.converters.DbConverter
 import com.example.playlistmarket.data.network.RetrofitNetworkClient
 import com.example.playlistmarket.domain.api.PlaylistsRepository
@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Инициализация реальных зависимостей
     private val app = application as App
     private val database = app.database
     private val historyPreferences = app.searchHistoryPreferences
@@ -29,7 +28,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val converter = DbConverter()
 
     private val playlistsRepository: PlaylistsRepository = PlaylistsRepositoryImpl(database, converter)
-    private val tracksRepository: TracksRepository = TracksRepositoryImpl(networkClient, database, historyPreferences)
+    private val tracksRepository: TracksRepository = TracksRepositoryImpl(networkClient, database, historyPreferences, application)
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite = _isFavorite.asStateFlow()
